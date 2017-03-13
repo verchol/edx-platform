@@ -1740,6 +1740,16 @@ REQUIRE_JS_PATH_OVERRIDES = {
     'draggabilly': 'js/vendor/draggabilly.js'
 }
 
+########################## DJANGO WEBPACK LOADER ##############################
+
+WEBPACK_LOADER = {
+    'DEFAULT': {
+        'BUNDLE_DIR_NAME': 'bundles/',
+        'STATS_FILE': os.path.join(REPO_ROOT, 'webpack-stats.json'),
+    }
+}
+
+
 ########################## DJANGO DEBUG TOOLBAR ###############################
 
 # We don't enable Django Debug Toolbar universally, but whenever we do, we want
@@ -1938,6 +1948,7 @@ INSTALLED_APPS = (
     'edxmako',
     'pipeline',
     'static_replace',
+    'webpack_loader',
 
     # For user interface plugins
     'web_fragments',

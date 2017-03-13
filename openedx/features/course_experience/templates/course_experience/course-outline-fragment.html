@@ -6,10 +6,6 @@
 from django.utils.translation import ugettext as _
 %>
 
-<%static:require_module_async module_name="course_experience/js/course_outline_factory" class_name="CourseOutlineFactory">
-    CourseOutlineFactory('.block-tree');
-</%static:require_module_async>
-
 <div class="course-outline" id="main" tabindex="-1">
     <ol class="block-tree" role="tree">
         % for section in blocks.get('children') or []:
@@ -40,3 +36,7 @@ from django.utils.translation import ugettext as _
         % endfor
     </ol>
 </div>
+
+<%static:webpack entry="CourseOutline">
+    new CourseOutline('.block-tree');
+</%static:webpack>
