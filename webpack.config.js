@@ -17,6 +17,8 @@ const wpconfig = {
       libraryTarget: 'window',
   },
 
+  devtool: isProd ? false : 'cheap-eval-source-map',
+
   plugins: [
     new webpack.NoEmitOnErrorsPlugin(),
     new webpack.NamedModulesPlugin(),

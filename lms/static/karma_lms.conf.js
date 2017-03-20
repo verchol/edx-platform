@@ -32,22 +32,32 @@ var options = {
         {pattern: 'js/**/!(*spec|djangojs).js'},
         {pattern: 'lms/js/**/!(*spec).js'},
         {pattern: 'support/js/**/!(*spec).js'},
-        {pattern: 'teams/js/**/!(*spec).js'}
+        {pattern: 'teams/js/**/!(*spec).js'},
+        {pattern: '../../openedx/features/course_experience/static/**/!(*spec).js', included: true}
     ],
 
     specFiles: [
-        {pattern: '../**/*spec.js'}
+        {pattern: '../**/*spec.js'},
+        {pattern: '../../openedx/features/course_experience/static/**/*spec.js', included: true}
     ],
 
     fixtureFiles: [
         {pattern: '../**/fixtures/**/*.html'},
         {pattern: '../**/templates/**/*.html'},
-        {pattern: '../**/*.underscore'}
+        {pattern: '../**/*.underscore'},
+        {pattern: '../../openedx/features/course_experience/static/**/fixtures/*.html'}
     ],
 
     runFiles: [
         {pattern: 'lms/js/spec/main.js', included: true}
-    ]
+    ],
+
+    preprocessors: {
+        '**/*.js': [
+            'webpack',
+            'sourcemap'
+        ]
+    }
 };
 
 module.exports = function(config) {

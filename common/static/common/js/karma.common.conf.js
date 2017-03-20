@@ -40,6 +40,7 @@
 var path = require('path');
 var _ = require('underscore');
 var appRoot = path.join(__dirname, '../../../../');
+var webpackConfig = require(path.join(appRoot, 'webpack.config.js'));
 
 // Files which are needed by all lms/cms suites.
 var commonFiles = {
@@ -281,6 +282,8 @@ var getBaseConfig = function(config, useRequireJs) {
             'karma-chrome-launcher',
             'karma-firefox-launcher',
             'karma-spec-reporter',
+            'karma-webpack',
+            'karma-sourcemap-loader',
             customPlugin
         ],
 
@@ -404,7 +407,8 @@ var configure = function(config, options) {
 
     config.set(_.extend(baseConfig, {
         files: files,
-        preprocessors: preprocessors
+        preprocessors: preprocessors,
+        webpack: webpackConfig
     }));
 };
 
