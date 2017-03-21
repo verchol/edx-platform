@@ -29,7 +29,8 @@ class TestSyncCourseRunsCommand(ModuleStoreTestCase):
         # create a catalog course run with the same course id.
         self.catalog_course_run = CourseRunFactory(
             key=unicode(self.course.id),
-            marketing_url='test_marketing_url'
+            marketing_url='test_marketing_url',
+            eligible_for_financial_aid=False
         )
 
     def get_course_overview_marketing_url(self, course_id):
@@ -38,18 +39,28 @@ class TestSyncCourseRunsCommand(ModuleStoreTestCase):
         """
         return CourseOverview.objects.get(id=course_id).marketing_url
 
+    def get_course_overview_eligible_for_financial_aid(self, course_id):
+        """
+        Get course overview marketing url.
+        """
+        return CourseOverview.objects.get(id=course_id).eligible_for_financial_aid
+
     def test_marketing_url_on_sync(self, mock_catalog_course_runs):
         """
         Verify the updated marketing url on execution of the management command.
         """
         mock_catalog_course_runs.return_value = [self.catalog_course_run]
         earlier_marketing_url = self.get_course_overview_marketing_url(self.course.id)
+        earlier_eligible_for_financial_aid = self.get_course_overview_eligible_for_financial_aid(self.course.id)
 
         call_command('sync_course_runs')
         updated_marketing_url = self.get_course_overview_marketing_url(self.course.id)
+        updated_eligible_for_financial_aid = self.get_course_overview_eligible_for_financial_aid(self.course.id)
         # Assert that the Marketing URL has changed.
         self.assertNotEqual(earlier_marketing_url, updated_marketing_url)
+        self.assertNotEqual(earlier_eligible_for_financial_aid, updated_eligible_for_financial_aid)
         self.assertEqual(updated_marketing_url, 'test_marketing_url')
+        self.assertEqual(updated_eligible_for_financial_aid, False)
 
     @mock.patch(COMMAND_MODULE + '.log.info')
     def test_course_overview_does_not_exist(self, mock_log_info, mock_catalog_course_runs):
@@ -66,7 +77,9 @@ class TestSyncCourseRunsCommand(ModuleStoreTestCase):
             nonexistent_course_run['key'],
         )
         updated_marketing_url = self.get_course_overview_marketing_url(self.course.id)
+        updated_eligible_for_financial_aid = self.get_course_overview_eligible_for_financial_aid(self.course.id)
         self.assertEqual(updated_marketing_url, 'test_marketing_url')
+        self.assertEqual(updated_eligible_for_financial_aid, False)
 
     @mock.patch(COMMAND_MODULE + '.log.info')
     def test_starting_and_ending_logs(self, mock_log_info, mock_catalog_course_runs):

@@ -35,7 +35,9 @@ class Command(BaseCommand):
         course_metadata_updated = 0
 
         for course_run in course_runs:
+            is_course_metadata_updated = False
             marketing_url = course_run['marketing_url']
+            eligible_for_financial_aid = course_run['eligible_for_financial_aid']
             course_key = CourseKey.from_string(course_run['key'])
             try:
                 course_overview = CourseOverview.objects.get(id=course_key)
@@ -51,6 +53,14 @@ class Command(BaseCommand):
             if course_overview.marketing_url != marketing_url:
                 course_overview.marketing_url = marketing_url
                 course_overview.save()
+                is_course_metadata_updated = True
+
+            if course_overview.eligible_for_financial_aid != eligible_for_financial_aid:
+                course_overview.eligible_for_financial_aid = eligible_for_financial_aid
+                course_overview.save()
+                is_course_metadata_updated = True
+
+            if is_course_metadata_updated:
                 course_metadata_updated += 1
 
         return catalog_course_runs_retrieved, course_runs_found_in_cache, course_metadata_updated

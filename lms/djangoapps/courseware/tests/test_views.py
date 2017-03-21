@@ -49,9 +49,10 @@ from courseware.user_state_client import DjangoXBlockUserStateClient
 from courseware.views.index import render_accordion
 from lms.djangoapps.commerce.utils import EcommerceService  # pylint: disable=import-error
 from milestones.tests.utils import MilestonesTestCaseMixin
+from openedx.core.djangoapps.content.course_overviews.models import CourseOverview
+from openedx.core.djangoapps.crawlers.models import CrawlersConfig
 from openedx.core.djangoapps.self_paced.models import SelfPacedConfiguration
 from openedx.core.lib.gating import api as gating_api
-from openedx.core.djangoapps.crawlers.models import CrawlersConfig
 from student.models import CourseEnrollment
 from student.tests.factories import AdminFactory, UserFactory, CourseEnrollmentFactory
 from util.tests.mixins.enterprise import EnterpriseTestConsentRequired
@@ -814,11 +815,13 @@ class ViewsTestCase(ModuleStoreTestCase):
         verified_course_audit_track = CourseFactory.create().id
         verified_course_deadline_passed = CourseFactory.create().id
         unenrolled_course = CourseFactory.create().id
+        verified_course_audit_track_non_eligible = CourseFactory.create().id
 
         enrollments = (
             (non_verified_course, CourseMode.AUDIT, None),
             (verified_course_verified_track, CourseMode.VERIFIED, None),
             (verified_course_audit_track, CourseMode.AUDIT, None),
+            (verified_course_audit_track_non_eligible, CourseMode.AUDIT, None),
             (verified_course_deadline_passed, CourseMode.AUDIT, datetime.now(UTC) - timedelta(days=1))
         )
         for course, mode, expiration in enrollments:
@@ -830,7 +833,12 @@ class ViewsTestCase(ModuleStoreTestCase):
                     expiration_datetime=expiration
                 )
             CourseEnrollmentFactory(course_id=course, user=self.user, mode=mode)
+            # load this course into course overview
+            CourseOverview.get_from_id(course)
 
+        non_eligible_course = CourseOverview.objects.get(id=verified_course_audit_track_non_eligible)
+        non_eligible_course.eligible_for_financial_aid = False
+        non_eligible_course.save()
         url = reverse('financial_assistance_form')
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
@@ -843,7 +851,8 @@ class ViewsTestCase(ModuleStoreTestCase):
                 non_verified_course,
                 verified_course_verified_track,
                 verified_course_deadline_passed,
-                unenrolled_course
+                unenrolled_course,
+                verified_course_audit_track_non_eligible
         ):
             self.assertNotIn(str(course), response.content)
 

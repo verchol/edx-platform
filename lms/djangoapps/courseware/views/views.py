@@ -1525,7 +1525,7 @@ def financial_assistance_form(request):
             Q(_expiration_datetime__isnull=True) | Q(_expiration_datetime__gt=datetime.now(UTC())),
             course_id=enrollment.course_id,
             mode_slug=CourseMode.VERIFIED
-        ).exists()
+        ).exists() and CourseOverview.objects.filter(id=enrollment.course_id, eligible_for_financial_aid=True).exists()
     ]
     incomes = ['Less than $5,000', '$5,000 - $10,000', '$10,000 - $15,000', '$15,000 - $20,000', '$20,000 - $25,000']
     annual_incomes = [
