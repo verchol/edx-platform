@@ -35,6 +35,7 @@
                             spyOn(state.videoPlayer.player.video, 'play').and.callThrough();
                             state.videoPlayer.player.playerState = STATUS.PAUSED;
                             $(state.videoPlayer.player.videoEl).trigger('click');
+                            console.log('beforeEach playerState >> ', state.videoPlayer.player.getPlayerState());
                         });
 
                         it('native play event was called', function() {
@@ -42,8 +43,10 @@
                         });
 
                         // Failing on master. See TNL-6748.
-                        xit('player state was changed', function(done) {
+                        it('player state was changed', function(done) {
+                            console.log('iPlayerState >> ', state.videoPlayer.player.getPlayerState());
                             jasmine.waitUntil(function() {
+                                console.log('wuPlayerState >> ', state.videoPlayer.player.getPlayerState());
                                 return state.videoPlayer.player.getPlayerState() === STATUS.PLAYING;
                             }).always(done);
                         });
