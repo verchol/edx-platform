@@ -348,7 +348,7 @@ var getBaseConfig = function(config, useRequireJs) {
         browserNoActivityTimeout: 50000,
 
         client: {
-            captureConsole: true
+            captureConsole: false
         }
     };
 };
