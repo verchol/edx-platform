@@ -465,6 +465,13 @@ class CreditRequirementStatus(TimeStampedModel):
             defaults={"reason": reason, "status": status}
         )
         if not created:
+            # do not update status to `failed` if user has `satisfied` the requirement
+            if status == 'failed' and requirement_status.status == 'satisfied':
+                log.debug(
+                    u'Can not change status of credit requirement "%s" from satisfied to failed ',
+                    requirement_status.requirement_id
+                )
+                return
             requirement_status.status = status
             requirement_status.reason = reason if reason else {}
             requirement_status.save()
