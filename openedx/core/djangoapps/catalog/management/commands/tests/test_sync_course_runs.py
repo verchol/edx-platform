@@ -39,7 +39,7 @@ class TestSyncCourseRunsCommand(ModuleStoreTestCase):
         """
         return CourseOverview.objects.get(id=course_id).marketing_url
 
-    def get_financial_aid_eligible_course_overviews(self, course_id):  # pylint: invalid-name
+    def get_financial_aid_eligible_course_overviews(self, course_id):  # pylint: disable=invalid-name
         """
         Get course overview marketing url.
         """
