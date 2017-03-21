@@ -394,17 +394,16 @@ class TestUserPartition(PartitionTestCase):
         self.assertEqual(partition.name, self.TEST_NAME)
 
 
-class StaticPartitionService(PartitionService):
+class MockPartitionService(PartitionService):
     """
     Mock PartitionService for testing.
     """
-    def __init__(self, partitions, **kwargs):
-        super(StaticPartitionService, self).__init__(**kwargs)
-        self._partitions = partitions
+    def __init__(self, course, **kwargs):
+        super(MockPartitionService, self).__init__(**kwargs)
+        self._course = course
 
-    @property
-    def course_partitions(self):
-        return self._partitions
+    def get_course(self):
+        return self._course
 
 
 class TestPartitionService(PartitionTestCase):
@@ -418,16 +417,17 @@ class TestPartitionService(PartitionTestCase):
         self.partition_service = self._create_service("ma")
 
     def _create_service(self, username, cache=None):
-        """Convenience method to generate a StaticPartitionService for a user."""
+        """Convenience method to generate a MockPartitionService for a user."""
         # Derive a "user_id" from the username, just so we don't have to add an
         # extra param to this method. Just has to be unique per user.
         user_id = abs(hash(username))
+        self.user = Mock(
+            username=username, email='{}@edx.org'.format(username), is_staff=False, is_active=True, id=user_id
+        )
+        self.course.user_partitions = [self.user_partition]
 
-        return StaticPartitionService(
-            [self.user_partition],
-            user=Mock(
-                username=username, email='{}@edx.org'.format(username), is_staff=False, is_active=True, id=user_id
-            ),
+        return MockPartitionService(
+            self.course,
             course_id=self.course.id,
             track_function=Mock(),
             cache=cache
@@ -440,12 +440,12 @@ class TestPartitionService(PartitionTestCase):
         self.user_partition.scheme.current_group = groups[0]
 
         # get a group assigned to the user
-        group1_id = self.partition_service.get_user_group_id_for_partition(user_partition_id)
+        group1_id = self.partition_service.get_user_group_id_for_partition(self.user, user_partition_id)
         self.assertEqual(group1_id, groups[0].id)
 
         # switch to the second group and verify that it is returned for the user
         self.user_partition.scheme.current_group = groups[1]
-        group2_id = self.partition_service.get_user_group_id_for_partition(user_partition_id)
+        group2_id = self.partition_service.get_user_group_id_for_partition(self.user, user_partition_id)
         self.assertEqual(group2_id, groups[1].id)
 
     def test_caching(self):
@@ -453,14 +453,14 @@ class TestPartitionService(PartitionTestCase):
         user_partition_id = self.user_partition.id
         shared_cache = {}
 
-        # Two StaticPartitionService objects that share the same cache:
+        # Two MockPartitionService objects that share the same cache:
         ps_shared_cache_1 = self._create_service(username, shared_cache)
         ps_shared_cache_2 = self._create_service(username, shared_cache)
 
-        # A StaticPartitionService with its own local cache
+        # A MockPartitionService with its own local cache
         ps_diff_cache = self._create_service(username, {})
 
-        # A StaticPartitionService that never uses caching.
+        # A MockPartitionService that never uses caching.
         ps_uncached = self._create_service(username)
 
         # Set the group we expect users to be placed into
@@ -472,7 +472,7 @@ class TestPartitionService(PartitionTestCase):
         for part_svc in [ps_shared_cache_1, ps_diff_cache, ps_uncached]:
             self.assertEqual(
                 first_group.id,
-                part_svc.get_user_group_id_for_partition(user_partition_id)
+                part_svc.get_user_group_id_for_partition(self.user, user_partition_id)
             )
 
         # Now select a new target group
@@ -485,20 +485,20 @@ class TestPartitionService(PartitionTestCase):
         for part_svc in [ps_shared_cache_1, ps_shared_cache_2, ps_diff_cache]:
             self.assertEqual(
                 first_group.id,
-                part_svc.get_user_group_id_for_partition(user_partition_id)
+                part_svc.get_user_group_id_for_partition(self.user, user_partition_id)
             )
 
         # Our uncached service should be accurate.
         self.assertEqual(
             second_group.id,
-            ps_uncached.get_user_group_id_for_partition(user_partition_id)
+            ps_uncached.get_user_group_id_for_partition(self.user, user_partition_id)
         )
 
         # And a newly created service should see the right thing
         ps_new_cache = self._create_service(username, {})
         self.assertEqual(
             second_group.id,
-            ps_new_cache.get_user_group_id_for_partition(user_partition_id)
+            ps_new_cache.get_user_group_id_for_partition(self.user, user_partition_id)
         )
 
     def test_get_group(self):
@@ -509,10 +509,10 @@ class TestPartitionService(PartitionTestCase):
 
         # assign first group and verify that it is returned for the user
         self.user_partition.scheme.current_group = groups[0]
-        group1 = self.partition_service.get_group(self.user_partition)
+        group1 = self.partition_service.get_group(self.user, self.user_partition)
         self.assertEqual(group1, groups[0])
 
         # switch to the second group and verify that it is returned for the user
         self.user_partition.scheme.current_group = groups[1]
-        group2 = self.partition_service.get_group(self.user_partition)
+        group2 = self.partition_service.get_group(self.user, self.user_partition)
         self.assertEqual(group2, groups[1])

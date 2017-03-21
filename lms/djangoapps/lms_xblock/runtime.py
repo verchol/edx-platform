@@ -90,10 +90,7 @@ class LmsPartitionService(PartitionService):
     the least messy way to hook things through)
 
     """
-    @property
-    def course_partitions(self):
-        course = modulestore().get_course(self._course_id)
-        return course.user_partitions
+    pass
 
 
 class UserTagsService(object):
@@ -155,7 +152,6 @@ class LmsModuleSystem(ModuleSystem):  # pylint: disable=abstract-method
         services['i18n'] = ModuleI18nService
         services['library_tools'] = LibraryToolsService(modulestore())
         services['partitions'] = LmsPartitionService(
-            user=kwargs.get('user'),
             course_id=kwargs.get('course_id'),
             track_function=kwargs.get('track_function', None),
             cache=request_cache_dict

@@ -1,39 +1,24 @@
 """
 UserPartitionScheme for enrollment tracks.
 """
-from courseware.masquerade import (  # pylint: disable=import-error
+from django.conf import settings
+
+from courseware.masquerade import (
     get_course_masquerade,
     get_masquerading_group_info,
     is_masquerading_as_specific_student,
 )
-from course_modes.models import CourseMode, EnrollmentMode
+from course_modes.models import CourseMode
 from student.models import CourseEnrollment
 from opaque_keys.edx.keys import CourseKey
 from openedx.core.djangoapps.verified_track_content.models import VerifiedTrackCohortedCourse
 from xmodule.partitions.partitions import NoSuchUserPartitionGroupError, Group, UserPartition
 
 
-# EnrollmentMode IDs will be low integers (starting at 0), which is important so that they
-# do not overlap with Groups in the CohortUserPartition or the RandomUserPartitionScheme
+# These IDs must be less than 100 so that they do not overlap with Groups in
+# CohortUserPartition or RandomUserPartitionScheme
 # (CMS' course_group_config uses a minimum value of 100 for all generated IDs).
-ENROLLMENT_GROUP_IDS = {}
-try:
-    for enrollment_mode in EnrollmentMode.objects.all():
-        ENROLLMENT_GROUP_IDS[enrollment_mode.mode_slug] = enrollment_mode.id
-except:  # pylint: disable=bare-except
-    pass
-
-if not ENROLLMENT_GROUP_IDS:
-    # The entries in this table are populated in a migration file, and migration files do not
-    # run as part of unit tests. Therefore, for tests hard-code the modes.
-    ENROLLMENT_GROUP_IDS = {
-        CourseMode.AUDIT: 1,
-        CourseMode.VERIFIED: 2,
-        CourseMode.PROFESSIONAL: 3,
-        CourseMode.NO_ID_PROFESSIONAL_MODE: 4,
-        CourseMode.CREDIT_MODE: 5,
-        CourseMode.HONOR: 6
-    }
+ENROLLMENT_GROUP_IDS = settings.COURSE_ENROLLMENT_MODES
 
 
 class EnrollmentTrackUserPartition(UserPartition):
@@ -64,9 +49,13 @@ class EnrollmentTrackUserPartition(UserPartition):
         'Serialize' to a json-serializable representation.
 
         Returns:
-            a dictionary with keys for the properties of the partition, with an empty array for
+            A dictionary with keys for the properties of the partition, with an empty array for
             `groups` because it is dynamic based on the current course modes.
         """
+        # Do not persist the course_id. In practice, this UserPartition is always dynamically
+        # added so this is not an issue, but to be clear about the intent, we will remove the
+        # course_id.
+        del self.parameters["course_id"]
         return {
             "id": self.id,
             "name": self.name,
@@ -90,6 +79,9 @@ class EnrollmentTrackPartitionScheme(object):
         Returns the Group from the specified user partition to which the user
         is assigned, via enrollment mode.
         """
+        if is_course_using_cohort_instead(course_key):
+            return None
+
         # NOTE: masquerade code was copied from CohortPartitionScheme, and it may need
         # some changes (or if not, code should be refactored out and shared).
         # This work will be done in a future story TNL-6739.
@@ -109,11 +101,13 @@ class EnrollmentTrackPartitionScheme(object):
             # The user is masquerading as a generic student. We can't show any particular group.
             return None
 
-        if is_course_using_cohort_instead(course_key):
-            return None
         mode_slug, is_active = CourseEnrollment.enrollment_mode_for_user(user, course_key)
         if mode_slug and is_active:
-            course_mode = CourseMode.mode_for_course(course_key, mode_slug)
+            course_mode = CourseMode.mode_for_course(
+                course_key,
+                mode_slug,
+                modes=CourseMode.modes_for_course(course_key, include_expired=True, only_selectable=False)
+            )
             if not course_mode:
                 course_mode = CourseMode.DEFAULT_MODE
             return Group(ENROLLMENT_GROUP_IDS[course_mode.slug], unicode(course_mode.name))

@@ -12,8 +12,8 @@ from xmodule.progress import Progress
 from xmodule.seq_module import SequenceDescriptor
 from xmodule.studio_editable import StudioEditableModule, StudioEditableDescriptor
 from xmodule.x_module import XModule, module_attr, STUDENT_VIEW
+from xmodule.modulestore.inheritance import UserPartitionList
 from xmodule.validation import StudioValidation, StudioValidationMessage
-from xmodule.partitions.partitions import UserPartitionList
 
 from lxml import etree
 
@@ -99,6 +99,7 @@ def get_split_user_partitions(user_partitions):
 
 @XBlock.needs('user_tags')  # pylint: disable=abstract-method
 @XBlock.wants('partitions')
+@XBlock.wants('user')
 class SplitTestModule(SplitTestFields, XModule, StudioEditableModule):
     """
     Show the user the appropriate child.  Uses the ExperimentState
@@ -193,9 +194,12 @@ class SplitTestModule(SplitTestFields, XModule, StudioEditableModule):
         Returns the group ID, or None if none is available.
         """
         partitions_service = self.runtime.service(self, 'partitions')
-        if not partitions_service:
+        user_service = self.runtime.service(self, 'user')
+        if not partitions_service or not user_service:
             return None
-        return partitions_service.get_user_group_id_for_partition(self.user_partition_id)
+
+        user = user_service._django_user  # pylint: disable=protected-access
+        return partitions_service.get_user_group_id_for_partition(user, self.user_partition_id)
 
     @property
     def is_configured(self):

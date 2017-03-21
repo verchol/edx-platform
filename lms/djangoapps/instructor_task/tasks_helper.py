@@ -797,7 +797,7 @@ def upload_grades_csv(_xmodule_instance_args, _entry_id, course_id, _task_input,
 
         group_configs_group_names = []
         for partition in experiment_partitions:
-            group = LmsPartitionService(student, course_id).get_group(partition, assign=False)
+            group = LmsPartitionService(course_id).get_group(student, partition, assign=False)
             group_configs_group_names.append(group.name if group else '')
 
         team_name = []

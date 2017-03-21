@@ -28,6 +28,7 @@ from courseware.tests.factories import (
     UserFactory,
 )
 from courseware.tests.helpers import LoginEnrollmentTestCase, masquerade_as_group_member
+from lms.djangoapps.lms_xblock.runtime import LmsPartitionService
 from openedx.core.djangoapps.content.course_overviews.models import CourseOverview
 from student.models import CourseEnrollment
 from student.roles import CourseCcxCoachRole, CourseStaffRole
@@ -314,7 +315,12 @@ class AccessTestCase(LoginEnrollmentTestCase, ModuleStoreTestCase, MilestonesTes
 
         chapter = ItemFactory.create(category="chapter", parent_location=self.course.location)
         chapter.group_access = {partition_id: [group_0_id]}
-        chapter.user_partitions = self.course.user_partitions
+
+        module_system = get_test_system()
+        module_system._services['partitions'] = LmsPartitionService(  # pylint: disable=protected-access
+            self.course.id
+        )
+        chapter.bind_for_student(module_system, self.global_staff.id)
 
         modulestore().update_item(self.course, ModuleStoreEnum.UserID.test)
 
@@ -431,6 +437,7 @@ class AccessTestCase(LoginEnrollmentTestCase, ModuleStoreTestCase, MilestonesTes
         user = Mock()
         descriptor = Mock(user_partitions=[])
         descriptor._class_tags = {}
+        descriptor.merged_group_access = {}
 
         # Always returns true because DISABLE_START_DATES is set in test.py
         self.assertTrue(access._has_access_descriptor(user, 'load', descriptor))
@@ -457,6 +464,8 @@ class AccessTestCase(LoginEnrollmentTestCase, ModuleStoreTestCase, MilestonesTes
         mock_unit._class_tags = {}  # Needed for detached check in _has_access_descriptor
         mock_unit.visible_to_staff_only = visible_to_staff_only
         mock_unit.start = start
+        mock_unit.merged_group_access = {}
+
         self.verify_access(mock_unit, expected_access, expected_error_type)
 
     def test__has_access_descriptor_beta_user(self):
@@ -465,6 +474,7 @@ class AccessTestCase(LoginEnrollmentTestCase, ModuleStoreTestCase, MilestonesTes
         mock_unit.days_early_for_beta = 2
         mock_unit.start = self.TOMORROW
         mock_unit.visible_to_staff_only = False
+        mock_unit.merged_group_access = {}
 
         self.assertTrue(bool(access._has_access_descriptor(
             self.beta_user, 'load', mock_unit, course_key=self.course.id)))
@@ -480,6 +490,8 @@ class AccessTestCase(LoginEnrollmentTestCase, ModuleStoreTestCase, MilestonesTes
         mock_unit._class_tags = {}  # Needed for detached check in _has_access_descriptor
         mock_unit.visible_to_staff_only = False
         mock_unit.start = start
+        mock_unit.merged_group_access = {}
+
         self.verify_access(mock_unit, True)
 
     @ddt.data(
@@ -499,6 +511,8 @@ class AccessTestCase(LoginEnrollmentTestCase, ModuleStoreTestCase, MilestonesTes
         mock_unit._class_tags = {}  # Needed for detached check in _has_access_descriptor
         mock_unit.visible_to_staff_only = False
         mock_unit.start = start
+        mock_unit.merged_group_access = {}
+
         self.verify_access(mock_unit, expected_access, expected_error_type)
 
     def test__has_access_course_can_enroll(self):
