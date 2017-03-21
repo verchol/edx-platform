@@ -39,7 +39,7 @@ class TestSyncCourseRunsCommand(ModuleStoreTestCase):
         """
         return CourseOverview.objects.get(id=course_id).marketing_url
 
-    def get_course_overview_eligible_for_financial_aid(self, course_id):
+    def get_financial_aid_eligible_course_overviews(self, course_id):  # pylint: invalid-name
         """
         Get course overview marketing url.
         """
@@ -51,11 +51,11 @@ class TestSyncCourseRunsCommand(ModuleStoreTestCase):
         """
         mock_catalog_course_runs.return_value = [self.catalog_course_run]
         earlier_marketing_url = self.get_course_overview_marketing_url(self.course.id)
-        earlier_eligible_for_financial_aid = self.get_course_overview_eligible_for_financial_aid(self.course.id)
+        earlier_eligible_for_financial_aid = self.get_financial_aid_eligible_course_overviews(self.course.id)
 
         call_command('sync_course_runs')
         updated_marketing_url = self.get_course_overview_marketing_url(self.course.id)
-        updated_eligible_for_financial_aid = self.get_course_overview_eligible_for_financial_aid(self.course.id)
+        updated_eligible_for_financial_aid = self.get_financial_aid_eligible_course_overviews(self.course.id)
         # Assert that the Marketing URL has changed.
         self.assertNotEqual(earlier_marketing_url, updated_marketing_url)
         self.assertNotEqual(earlier_eligible_for_financial_aid, updated_eligible_for_financial_aid)
@@ -77,7 +77,7 @@ class TestSyncCourseRunsCommand(ModuleStoreTestCase):
             nonexistent_course_run['key'],
         )
         updated_marketing_url = self.get_course_overview_marketing_url(self.course.id)
-        updated_eligible_for_financial_aid = self.get_course_overview_eligible_for_financial_aid(self.course.id)
+        updated_eligible_for_financial_aid = self.get_financial_aid_eligible_course_overviews(self.course.id)
         self.assertEqual(updated_marketing_url, 'test_marketing_url')
         self.assertEqual(updated_eligible_for_financial_aid, False)
 

@@ -833,7 +833,7 @@ class ViewsTestCase(ModuleStoreTestCase):
                     expiration_datetime=expiration
                 )
             CourseEnrollmentFactory(course_id=course, user=self.user, mode=mode)
-            # load this course into course overview
+            # load courses into course overview
             CourseOverview.get_from_id(course)
 
         non_eligible_course = CourseOverview.objects.get(id=verified_course_audit_track_non_eligible)
