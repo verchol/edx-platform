@@ -405,6 +405,10 @@ function(HTML5Video, Resizer) {
         this.videoPlayer.goToStartTime = false;
 
         this.videoPlayer.seekTo(time);
+        this.trigger('videoProgressSlider.focusSlider', {
+            playing: true
+        });
+
         this.el.trigger('seek', [time, oldTime, type]);
     }
 
