@@ -32,20 +32,17 @@ var options = {
         {pattern: 'js/**/!(*spec|djangojs).js'},
         {pattern: 'lms/js/**/!(*spec).js'},
         {pattern: 'support/js/**/!(*spec).js'},
-        {pattern: 'teams/js/**/!(*spec).js'},
-        {pattern: '../../openedx/features/course_experience/static/**/!(*spec).js', included: true}
+        {pattern: 'teams/js/**/!(*spec).js'}
     ],
 
     specFiles: [
-        {pattern: '../**/*spec.js'},
-        {pattern: '../../openedx/features/course_experience/static/**/*spec.js', included: true}
+        {pattern: '../**/*spec.js'}
     ],
 
     fixtureFiles: [
         {pattern: '../**/fixtures/**/*.html'},
         {pattern: '../**/templates/**/*.html'},
-        {pattern: '../**/*.underscore'},
-        {pattern: '../../openedx/features/course_experience/static/**/fixtures/*.html'}
+        {pattern: '../**/*.underscore'}
     ],
 
     runFiles: [
