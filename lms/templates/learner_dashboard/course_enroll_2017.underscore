@@ -1,0 +1,78 @@
+<style>
+.enroll-button {
+    background-color: #3C5E7E;
+    height: 37px;
+    width: 128px;
+    border-radius: 0;
+    padding: 0;
+    margin-top: 6px;
+}
+.course-enroll-view .select-choice {
+    font-family: "Open Sans";
+    font-weight: bold;
+    font-size: 0.9375em;
+    color: #2c3e50;
+    margin-top: 6px;
+    margin-right: 2px;
+}
+.run-select-container {
+    display: flex;
+    margin-top: 8px;
+}
+.run-select {
+    width: 340px;
+    height: 34px;
+}
+</style>
+<% if (is_enrolled) { %>
+<% } else { %>
+    <% if (enrollable_course_runs.length > 0) { %>
+        <% if (enrollable_course_runs.length > 1) { %>
+            <div class="run-select-container">
+                <div class="select-choice">
+                    <%- gettext('Choose a course run:') %>
+                </div>
+                <label class="sr-only" for="select-<%- course_key %>-run">
+                    <%- gettext('Select Course Run') %>
+                </label>
+                <select id="select-<%- course_key %>-run" class="run-select" autocomplete="off">
+                    <% _.each (enrollable_course_runs, function(courseRun) { %>
+                        <option
+                            value="<%- courseRun.key %>"
+                            <% if (key === courseRun.key) { %>
+                                selected="selected"
+                            <% }%>
+                        >
+                            <%= interpolate(
+                                gettext('Starts %(start)s'),
+                                { start: courseRun.start_date },
+                                true)
+                            %> - <%= interpolate(
+                                gettext('Ends %(end)s'),
+                                { end: courseRun.end_date },
+                                true)
+                            %>
+                        </option>
+                    <% }); %>
+                </select>
+            </div>
+        <% } %>
+        <button type="button" class="btn-brand btn cta-primary enroll-button">
+            <%- gettext('Enroll Now') %>
+        </button>
+    <% } else if (upcoming_course_runs.length > 0) {%>
+        <div class="no-action-message">
+            <%- gettext('Coming Soon') %>
+        </div>
+        <div class="enrollment-opens">
+            <%- gettext('Enrollment Opens on') %>
+            <span class="enrollment-open-date">
+                <%- upcoming_course_runs[0].enrollment_open_date %>
+            </span>
+        </div>
+    <% } else { %>
+        <div class="no-action-message">
+            <%- gettext('Not Currently Available') %>
+        </div>
+    <% } %>
+<% } %>

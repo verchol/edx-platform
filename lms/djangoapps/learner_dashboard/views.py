@@ -38,6 +38,11 @@ def program_listing(request):
         'show_program_listing': programs_config.enabled,
         'uses_pattern_library': True,
     }
+    import pdb; pdb.set_trace()
+    context['progress'] = [{'completed': 1, 'in_progress': 3, 'uuid': u'0ffff5d6-0177-4690-9a48-aa2fecf94610', 'not_started': 2}]
+    for value in context['programs'][0]['banner_image'].values():
+        value['url'] = value['url'].replace('10.0.2.2', 'localhost')
+
 
     return render_to_response('learner_dashboard/programs.html', context)
 

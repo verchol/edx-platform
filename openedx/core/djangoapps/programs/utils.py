@@ -272,7 +272,6 @@ class ProgramDataExtender(object):
                 self.course_run_key = CourseKey.from_string(course_run['key'])
                 self.course_overview = CourseOverview.get_from_id(self.course_run_key)
                 self.enrollment_start = self.course_overview.enrollment_start or DEFAULT_ENROLLMENT_START_DATE
-
                 self._execute('_attach_course_run', course_run)
 
     def _attach_course_run_certificate_url(self, run_mode):

@@ -1,4 +1,4 @@
-get_programs_credentials(function(define) {
+(function(define) {
     'use strict';
 
     define(['backbone',
@@ -7,11 +7,11 @@ get_programs_credentials(function(define) {
             'gettext',
             'edx-ui-toolkit/js/utils/html-utils',
             'js/learner_dashboard/collections/course_card_collection',
-            'js/learner_dashboard/views/program_header_view',
+            'js/learner_dashboard/views/program_header_view_2017',
             'js/learner_dashboard/views/collection_list_view',
-            'js/learner_dashboard/views/course_card_view',
+            'js/learner_dashboard/views/course_card_view_2017',
             'js/learner_dashboard/views/program_details_sidebar_view',
-            'text!../../../templates/learner_dashboard/program_details_view.underscore'
+            'text!../../../templates/learner_dashboard/program_details_view_2017.underscore'
            ],
          function(
              Backbone,
@@ -42,8 +42,13 @@ get_programs_credentials(function(define) {
                  },
 
                  render: function() {
-                     HtmlUtils.setHtml(this.$el, this.tpl());
-                     this.postRender();
+                    var data = {
+                        total_count: this.courseCardCollection.length,
+                        in_progress_count: this.courseCardCollection.length
+                    };
+                    data = $.extend(data, this.options.programData);
+                    HtmlUtils.setHtml(this.$el, this.tpl(data));
+                    this.postRender();
                  },
 
                  postRender: function() {
@@ -51,20 +56,42 @@ get_programs_credentials(function(define) {
                          model: new Backbone.Model(this.options)
                      });
                      new CollectionListView({
-                         el: '.js-course-list',
+                         el: '.js-course-list-in-progress',
                          childView: CourseCardView,
                          collection: this.courseCardCollection,
                          context: this.options,
                          titleContext: {
                              el: 'h2',
-                             title: 'Course List'
+                             title: 'In Progress Course List'
                          }
                      }).render();
 
-                    new SidebarView({
-                        el: '.sidebar',
-                        context: options
-                    }).render();
+                     new CollectionListView({
+                         el: '.js-course-list-remaining',
+                         childView: CourseCardView,
+                         collection: this.courseCardCollection,
+                         context: this.options,
+                         titleContext: {
+                             el: 'h2',
+                             title: 'Remaining Course List'
+                         }
+                     }).render();
+
+                     new CollectionListView({
+                         el: '.js-course-list-completed',
+                         childView: CourseCardView,
+                         collection: this.courseCardCollection,
+                         context: this.options,
+                         titleContext: {
+                             el: 'h2',
+                             title: 'Completed Course List'
+                         }
+                     }).render();
+
+                     new SidebarView({
+                         el: '.sidebar',
+                         context: this.options
+                     }).render();
                  }
              });
          }

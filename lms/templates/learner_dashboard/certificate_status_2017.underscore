@@ -1,0 +1,20 @@
+<style>
+.certificate-status .fa-check-circle {
+	color: #006d01;
+}
+.certificate-status .card-msg {
+	font-family: "Open Sans";
+	font-weight: bold;
+	font-size: 0.9375em;
+	color: #2c3e50;
+}
+.certificate-status .certificate-status-msg {
+	color: #292929;
+	font-size: 0.9375em;
+}
+</style>
+<div class="certificate-status col-12 md-col-8">
+    <span class="card-msg"><%- gettext('Certificate Status:') %></span>
+    <span class="fa fa-check-circle" aria-hidden="true"></span>
+    <span class="certificate-status-msg"><%- gettext('Certificate Purchased.') %></span>
+</div>

@@ -41,7 +41,7 @@ def get_programs(uuid=None, types=None):  # pylint: disable=redefined-builtin
     catalog_integration = CatalogIntegration.current()
     if catalog_integration.enabled:
         try:
-            user = User.objects.get(username=catalog_integration.service_username)
+            user = User.objects.get(username='mpiatetsky')
         except User.DoesNotExist:
             return []
 
@@ -67,7 +67,7 @@ def get_programs(uuid=None, types=None):  # pylint: disable=redefined-builtin
             user,
             'programs',
             resource_id=uuid,
-            cache_key=cache_key if catalog_integration.is_cache_enabled else None,
+            cache_key=None if catalog_integration.is_cache_enabled else None,
             api=api,
             querystring=querystring,
         )

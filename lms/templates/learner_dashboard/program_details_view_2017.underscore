@@ -1,0 +1,103 @@
+<style>
+.window-wrap {
+	background-color: rgb(252,252,252);
+}
+.program-details-content {
+	margin-left: 30px;
+}
+.course-list-heading {
+	font-family: "Open Sans";
+	font-weight: bold;
+	color: #065784;
+	font-size: 0.9375em;
+}
+.course-list-heading .status {
+	margin-right: 7px;
+}
+.course-list-headings hr {
+	margin-bottom: 20px;
+	background-color: #BBC7D2;
+	height: 2px;
+	width: 700px;
+	border: none;
+}
+.course-list > div:nth-of-type(even) {
+    background-color: #f9fafc;
+}
+
+.course-list-headings {
+	width: 700px;
+}
+
+.course-list-headings hr {
+	margin-left: 0;
+}
+.program-heading {
+	width: 70%;
+	margin-top: 80px;
+	margin-bottom: 40px;
+}
+.program-heading-title {
+    font-family: "Open Sans";
+    font-weight: 600;
+    font-size: 1.3em;
+    color: #373737;
+    margin-bottom: 5px;
+}
+.program-heading-message {
+	font-weight: 300;
+}
+</style>
+<header class="js-program-header program-header full-width-banner"></header>
+<div class="program-details-content">
+	<div class="js-program-progress-view"></div>
+	<div class="program-heading">
+			<% if (in_progress_count == total_count) { %>
+				<div class="program-heading-title"><%- gettext('Congratulations!') %></div>
+				<div class="program-heading-message">
+					<div><%- interpolate(gettext(
+						'You have successfully completed all the requirements for the %(title)s %(type)s.'),
+		                { title: title, type: type }, true) %>
+		            </div>
+		        </div>
+			<% } else { %>
+				<div class="program-heading-title"><%- gettext('Your Program Journey') %></div>
+				<div class="program-heading-message">
+					<div>
+						<%- interpolate(gettext(
+						'Track and plan your progress through the %(count)s courses in this program'),
+		                { count: total_count }, true) %>
+		            </div>
+					<div><%- gettext('To complete the program, you must earn a verified certificate for each course.') %></div>
+				</div>
+			<% } %>
+	</div>
+	<div class="course-list-headings">
+		<div class="in-progress-group">
+			<div class="course-list-heading">
+				<span class="status"><%- gettext('COURSES IN PROGRESS') %></span>
+				<span class="count"></span>
+			</div>
+			<hr>
+			<div class="course-list js-course-list-in-progress row"></div>
+		</div>
+		<div class="remaining-group">
+			<div class="course-list-heading">
+				<span class="status"><%- gettext('REMAINING COURSES') %></span>
+				<span class="count"></span>
+			</div>
+			<hr>
+			<div class="course-list js-course-list-remaining row"></div>
+		</div>
+		<div class="completed-group">
+			<div class="course-list-heading">
+				<span class="status"><%- gettext('COMPLETED COURSES') %></span>
+				<span class="count"></span>
+			</div>
+			<hr>
+			<div class="course-list js-course-list-completed row"></div>
+		</div>	
+	</div>
+	
+	<aside class="js-course-sidebar"></aside>
+</div>

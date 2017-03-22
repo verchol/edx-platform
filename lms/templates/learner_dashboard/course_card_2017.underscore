@@ -1,0 +1,71 @@
+<style>
+    .section {
+        width: 75%;
+        margin-left: 0 !important;
+        margin-right: auto !important;
+    }
+    .course-card2 {
+        width: 100%;
+        height: 100px;
+    }
+    .course-card2 .course-details2 {
+        float: none;
+    }
+    .course-card2 .course-details2 .course-title2 { 
+        font-size: 1em;
+        color: #0976b5;
+        font-weight: 600;
+        text-decoration: underline;
+        margin-bottom: 5px;
+    }
+    .course-card2 .course-details2 .run-period {
+        color: #292929;
+        font-size: 0.9375em;
+    }
+    .section2 {
+        display: flex;
+        justify-content: space-between;
+        margin-left: 20px;
+        margin-right: 40px;
+    }
+
+    .course-meta-container {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .course-actions {
+        display: flex;
+        flex-direction: column;
+    }
+    .course-actions .course-enroll-view {
+        display: flex;
+        justify-content: space-between;
+    }
+</style>
+<div class="section2">
+    <div class="course-meta-container col-12 md-col-8 sm-col-12">
+        <div class="course-details2">
+            <span class="course-title2">
+                <% if ( marketing_url || course_url ) { %>
+                    <a href="<%- marketing_url || course_url %>" class="course-title-link">
+                        <%- title %>
+                    </a>
+                <% } else { %>
+                    <%- title %>
+                <% } %>
+            </span>
+            <div class="course-text">
+                <% if (start_date && end_date) { %>
+                    <span class="run-period"><%- start_date %> - <%- end_date %></span>
+                <% } %>
+            </div>
+        </div>
+        <div class="course-actions col-12 md-col-4 sm-col-12"></div>
+        <div class="certificate-status"></div>
+    </div>
+</div>
+<div class="section2 action-msg-view"></div>
+<div class="section2 upgrade-message"></div>
+

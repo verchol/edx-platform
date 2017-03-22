@@ -11,6 +11,15 @@ from openedx.core.djangolib.js_utils import (
 )
 %>
 
+<style>
+	.program-details-header {
+		margin-left: 30px;
+	    color: black;
+	    font-family: 'Open Sans';
+	    font-weight: normal;
+	}
+</style>
+
 <%block name="js_extra">
 <%static:require_module module_name="js/learner_dashboard/program_details_factory" class_name="ProgramDetailsFactory">
 ProgramDetailsFactory({
