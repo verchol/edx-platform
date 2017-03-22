@@ -430,7 +430,7 @@ def get_certificate_url(user_id=None, course_id=None, uuid=None):
     :return certificate url for web or pdf certs. In case of web certs returns either old
     or new cert url based on given parameters. For web certs if `uuid` is it would return
     new uuid based cert url url otherwise old url.
-    """
+    """ 
     url = ""
     if has_html_certificates_enabled(course_id):
         if uuid:

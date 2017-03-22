@@ -32,20 +32,30 @@
                  tpl: HtmlUtils.template(pageTpl),
 
                  initialize: function(options) {
-                     this.options = options;
-                     this.programModel = new Backbone.Model(this.options.programData);
-                     this.courseCardCollection = new CourseCardCollection(
-                        this.programModel.get('courses'),
-                        this.options.userPreferences
+                    this.options = options;
+                    this.programModel = new Backbone.Model(this.options.programData);
+                    this.courseData = new Backbone.Model(this.options.courseData)
+                    this.completedCourseCollection = new CourseCardCollection(
+                       this.courseData.get('completed') || [],
+                       this.options.userPreferences
                     );
-                     this.render();
+                    this.inProgressCourseCollection = new CourseCardCollection(
+                       this.courseData.get('in_progress') || [],
+                       this.options.userPreferences
+                    );
+                    this.remainingCourseCollection = new CourseCardCollection(
+                       this.courseData.get('remaining') || [],
+                       this.options.userPreferences
+                    );
+                    this.render();
                  },
 
                  render: function() {
-                    var data = {
-                        total_count: this.courseCardCollection.length,
-                        in_progress_count: this.courseCardCollection.length
-                    };
+                    var completedCount = this.completedCourseCollection.length,
+                        inProgressCount = this.inProgressCourseCollection.length,
+                        remainingCount = this.remainingCourseCollection.length,
+                        totalCount = completedCount + inProgressCount + remainingCount,
+                        data = { totalCount: totalCount, inProgressCount: inProgressCount };
                     data = $.extend(data, this.options.programData);
                     HtmlUtils.setHtml(this.$el, this.tpl(data));
                     this.postRender();
@@ -58,7 +68,7 @@
                      new CollectionListView({
                          el: '.js-course-list-in-progress',
                          childView: CourseCardView,
-                         collection: this.courseCardCollection,
+                         collection: this.inProgressCourseCollection,
                          context: this.options,
                          titleContext: {
                              el: 'h2',
@@ -69,7 +79,7 @@
                      new CollectionListView({
                          el: '.js-course-list-remaining',
                          childView: CourseCardView,
-                         collection: this.courseCardCollection,
+                         collection: this.remainingCourseCollection,
                          context: this.options,
                          titleContext: {
                              el: 'h2',
@@ -80,7 +90,7 @@
                      new CollectionListView({
                          el: '.js-course-list-completed',
                          childView: CourseCardView,
-                         collection: this.courseCardCollection,
+                         collection: this.completedCourseCollection,
                          context: this.options,
                          titleContext: {
                              el: 'h2',

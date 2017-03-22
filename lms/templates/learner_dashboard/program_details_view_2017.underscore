@@ -52,7 +52,7 @@
 <div class="program-details-content">
 	<div class="js-program-progress-view"></div>
 	<div class="program-heading">
-			<% if (in_progress_count == total_count) { %>
+			<% if (inProgressCount == totalCount) { %>
 				<div class="program-heading-title"><%- gettext('Congratulations!') %></div>
 				<div class="program-heading-message">
 					<div><%- interpolate(gettext(
@@ -66,7 +66,7 @@
 					<div>
 						<%- interpolate(gettext(
 						'Track and plan your progress through the %(count)s courses in this program'),
-		                { count: total_count }, true) %>
+		                { count: totalCount }, true) %>
 		            </div>
 					<div><%- gettext('To complete the program, you must earn a verified certificate for each course.') %></div>
 				</div>
