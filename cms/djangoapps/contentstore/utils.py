@@ -295,9 +295,10 @@ def get_group_display_name(user_partitions, xblock_display_name):
         group name (String): Group name of the matching group.
     """
     for user_partition in user_partitions:
-        for group in user_partition['groups']:
-            if str(group['id']) in xblock_display_name:
-                return group['name']
+        if user_partition['scheme'] == 'random':
+            for group in user_partition['groups']:
+                if _(u'Group ID {group_id}').format(group_id=group['id']) == xblock_display_name:
+                    return group['name']
 
 
 def get_user_partition_info(xblock, schemes=None, course=None):
