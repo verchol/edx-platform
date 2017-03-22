@@ -28,7 +28,6 @@ except ImportError:
     newrelic = None  # pylint: disable=invalid-name
 
 import urllib
-import waffle
 
 from lms.djangoapps.gating.api import get_entrance_exam_score_ratio, get_entrance_exam_usage_key
 from lms.djangoapps.grades.new.course_grade import CourseGradeFactory
@@ -421,7 +420,7 @@ class CoursewareIndex(View):
             'disable_optimizely': True,
             'section_title': None,
             'sequence_title': None,
-            'disable_accordion': waffle.flag_is_active(request, 'unified_course_view')
+            'disable_accordion': True,
         }
         table_of_contents = toc_for_course(
             self.effective_user,
