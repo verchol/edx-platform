@@ -29,6 +29,19 @@ class CourseOutlineFragmentView(FragmentView):
         for i in range(len(children)):
             child_id = block['children'][i]
             child_detail = self.populate_children(all_blocks[child_id], all_blocks)
+
+            # Fake data; remove
+            child_detail = dict(child_detail, **{
+                'due': "",
+                'format': "",
+                'proctoring': {
+                    'status': 'eligible',
+                    'suggested_icon': 'fa-pencil-square-o',
+                    'in_completed_state': True,
+                    'short_description': "I don't know what goes here"
+                }
+            })
+
             block['children'][i] = child_detail
 
         return block
