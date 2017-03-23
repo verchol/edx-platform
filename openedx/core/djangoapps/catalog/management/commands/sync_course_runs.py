@@ -52,15 +52,15 @@ class Command(BaseCommand):
             # Check whether course overview's marketing url is outdated - this saves a db hit.
             if course_overview.marketing_url != marketing_url:
                 course_overview.marketing_url = marketing_url
-                course_overview.save()
                 is_course_metadata_updated = True
 
+            # Check whether course overview's eligible for financial aid is outdated
             if course_overview.eligible_for_financial_aid != eligible_for_financial_aid:
                 course_overview.eligible_for_financial_aid = eligible_for_financial_aid
-                course_overview.save()
                 is_course_metadata_updated = True
 
             if is_course_metadata_updated:
+                course_overview.save()
                 course_metadata_updated += 1
 
         return catalog_course_runs_retrieved, course_runs_found_in_cache, course_metadata_updated
