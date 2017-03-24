@@ -35,6 +35,7 @@ function() {
     //
     //     Functions which will be accessible via 'state' object. When called,
     //     these functions will get the 'state' object as a context.
+    /*eslint-disable no-use-before-define*/
     function _makeFunctionsPublic(state) {
         var methodsDict = {
             destroy: destroy,
@@ -51,11 +52,17 @@ function() {
 
         state.bindTo(methodsDict, state.videoProgressSlider, state);
     }
+    /*eslint-enable no-use-before-define*/
 
     function destroy() {
         this.videoProgressSlider.el.removeAttr('tabindex').slider('destroy');
         this.el.off('destroy', this.videoProgressSlider.destroy);
         delete this.videoProgressSlider;
+    }
+
+    function bindHandlers(state) {
+        state.videoProgressSlider.el.on('keypress', sliderToggle.bind(state));
+        state.el.on('destroy', state.videoProgressSlider.destroy);
     }
 
     // function _renderElements(state)
@@ -79,7 +86,7 @@ function() {
 
         state.videoProgressSlider.el.append(
             '<div class="sr" id="slider-text-' + state.id + '">' +
-                'Press space to toggle playback' +
+                gettext('Press space to toggle playback') +
             '</div>'
         );
 
@@ -103,11 +110,6 @@ function() {
             'tabindex': '0',
             'aria-label': gettext('Video position')
         });
-    }
-
-    function bindHandlers(state) {
-        state.videoProgressSlider.el.on('keypress', sliderToggle.bind(state));
-        state.el.on('destroy', state.videoProgressSlider.destroy);
     }
 
     // ***************************************************************
@@ -344,6 +346,7 @@ function() {
         return i18n(seconds, 'second');
     }
 
+    // Shift focus to the progress slider container element.
     function focusSlider() {
         this.videoProgressSlider.handle.attr(
             'aria-valuetext', getTimeDescription(this.videoPlayer.currentTime)
@@ -351,6 +354,7 @@ function() {
         this.videoProgressSlider.el.trigger('focus');
     }
 
+    // Toggle video playback when the spacebar is pushed.
     function sliderToggle(e) {
         if (e.which === 32) {
             e.preventDefault();
