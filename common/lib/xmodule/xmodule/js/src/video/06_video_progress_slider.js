@@ -77,9 +77,19 @@ function() {
         state.videoProgressSlider.handle = state.videoProgressSlider.el
             .find('.ui-slider-handle');
 
+        state.videoProgressSlider.el.append(
+            '<div class="sr" id="slider-text-' + state.id + '">' +
+                'Press space to toggle playback' +
+            '</div>'
+        );
+
         // ARIA
         // We just want the knob to be selectable with keyboard
-        state.videoProgressSlider.el.attr('tabindex', -1);
+        state.videoProgressSlider.el.attr({
+            'tabindex': -1,
+            'aria-describedby': 'slider-text-' + state.id
+        });
+
         // Let screen readers know that this div, representing the slider
         // handle, behaves as a slider named 'video position'.
         state.videoProgressSlider.handle.attr({
@@ -91,13 +101,12 @@ function() {
             'aria-valuemin': '0',
             'aria-valuenow': state.videoPlayer.currentTime,
             'tabindex': '0',
-            'aria-label': gettext('Video position'),
-            'aria-describedby': 'slider-text-' + state.id
+            'aria-label': gettext('Video position')
         });
     }
 
     function _bindHandlers(state) {
-        state.videoProgressSlider.handle.on('keypress', sliderToggle.bind(state));
+        state.videoProgressSlider.el.on('keypress', sliderToggle.bind(state));
         state.el.on('destroy', state.videoProgressSlider.destroy);
     }
 
@@ -110,11 +119,7 @@ function() {
 
     function buildSlider() {
         this.videoProgressSlider.el
-            .append('<div class="ui-slider-handle progress-handle">' +
-                        '<div class="sr" id="slider-text-' + this.id + '">' +
-                            'Press space to toggle playback' +
-                        '</div>' +
-                    '</div>');
+            .append('<div class="ui-slider-handle progress-handle"></div>');
 
         this.videoProgressSlider.slider = this.videoProgressSlider.el
             .slider({
@@ -343,7 +348,7 @@ function() {
         this.videoProgressSlider.handle.attr(
             'aria-valuetext', getTimeDescription(this.videoPlayer.currentTime)
         );
-        this.videoProgressSlider.handle.trigger('focus');
+        this.videoProgressSlider.el.trigger('focus');
     }
 
     function sliderToggle(e) {
