@@ -27,7 +27,7 @@ class GroupAccessDict(Dict):
             return {unicode(k): access_dict[k] for k in access_dict}
 
 
-@XBlock.wants('partitions')
+@XBlock.needs('partitions')
 class LmsBlockMixin(XBlockMixin):
     """
     Mixin that defines fields common to all blocks used in the LMS
@@ -133,8 +133,7 @@ class LmsBlockMixin(XBlockMixin):
         Returns the user partition with the specified id.  Raises
         `NoSuchUserPartitionError` if the lookup fails.
         """
-        partition_service = self.runtime.service(self, 'partitions')
-        for user_partition in partition_service.course_partitions if partition_service else self.user_partitions:
+        for user_partition in self.runtime.service(self, 'partitions').course_partitions:
             if user_partition.id == user_partition_id:
                 return user_partition
 

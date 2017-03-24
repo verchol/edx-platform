@@ -80,19 +80,6 @@ def local_resource_url(block, uri):
     return xblock_local_resource_url(block, uri)
 
 
-class LmsPartitionService(PartitionService):
-    """
-    Another runtime mixin that provides access to the student partitions defined on the
-    course.
-
-    (If and when XBlock directly provides access from one block (e.g. a split_test_module)
-    to another (e.g. a course_module), this won't be necessary, but for now it seems like
-    the least messy way to hook things through)
-
-    """
-    pass
-
-
 class UserTagsService(object):
     """
     A runtime class that provides an interface to the user service.  It handles filling in
@@ -151,7 +138,7 @@ class LmsModuleSystem(ModuleSystem):  # pylint: disable=abstract-method
         services['fs'] = xblock.reference.plugins.FSService()
         services['i18n'] = ModuleI18nService
         services['library_tools'] = LibraryToolsService(modulestore())
-        services['partitions'] = LmsPartitionService(
+        services['partitions'] = PartitionService(
             course_id=kwargs.get('course_id'),
             track_function=kwargs.get('track_function', None),
             cache=request_cache_dict

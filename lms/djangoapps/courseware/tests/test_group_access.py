@@ -15,7 +15,6 @@ from xmodule.modulestore.django import modulestore
 import courseware.access as access
 from courseware.tests.factories import StaffFactory, UserFactory
 
-from lms.djangoapps.lms_xblock.runtime import LmsPartitionService
 
 class MemoryUserPartitionScheme(object):
     """
@@ -184,13 +183,8 @@ class GroupAccessTestCase(ModuleStoreTestCase):
         """
         DRY helper.
         """
-        # Set the partition service on the item.
-        item = modulestore().get_item(block_location)
-        item.runtime._services['partitions'] = LmsPartitionService(  # pylint: disable=protected-access
-            self.course.id
-        )
         self.assertIs(
-            bool(access.has_access(user, 'load', item, self.course.id)),
+            bool(access.has_access(user, 'load', modulestore().get_item(block_location), self.course.id)),
             is_accessible
         )
 

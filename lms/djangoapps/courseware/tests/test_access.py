@@ -28,7 +28,6 @@ from courseware.tests.factories import (
     UserFactory,
 )
 from courseware.tests.helpers import LoginEnrollmentTestCase, masquerade_as_group_member
-from lms.djangoapps.lms_xblock.runtime import LmsPartitionService
 from openedx.core.djangoapps.content.course_overviews.models import CourseOverview
 from student.models import CourseEnrollment
 from student.roles import CourseCcxCoachRole, CourseStaffRole
@@ -315,12 +314,6 @@ class AccessTestCase(LoginEnrollmentTestCase, ModuleStoreTestCase, MilestonesTes
 
         chapter = ItemFactory.create(category="chapter", parent_location=self.course.location)
         chapter.group_access = {partition_id: [group_0_id]}
-
-        module_system = get_test_system()
-        module_system._services['partitions'] = LmsPartitionService(  # pylint: disable=protected-access
-            self.course.id
-        )
-        chapter.bind_for_student(module_system, self.global_staff.id)
 
         modulestore().update_item(self.course, ModuleStoreEnum.UserID.test)
 

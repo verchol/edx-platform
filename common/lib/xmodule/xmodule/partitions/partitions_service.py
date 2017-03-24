@@ -3,7 +3,6 @@ This is a service-like API that assigns tracks which groups users are in for var
 user partitions.  It uses the user_service key/value store provided by the LMS runtime to
 persist the assignments.
 """
-from abc import ABCMeta
 from django.utils.translation import ugettext as _
 import logging
 
@@ -27,11 +26,19 @@ def get_course_user_partitions(course):
 
 
 def _get_dynamic_partitions(course):
+    """
+    Return the dynamic user partitions for this course.
+    If none exists, returns an empty array.
+    """
     enrollment_partition = _create_enrollment_track_partition(course)
     return [enrollment_partition] if enrollment_partition else []
 
 
 def _create_enrollment_track_partition(course):
+    """
+    Create and return the dynamic enrollment track user partition.
+    If it cannot be created, None is returned.
+    """
     try:
         enrollment_track_scheme = UserPartition.get_scheme("enrollment_track")
     except UserPartitionError:
@@ -57,13 +64,21 @@ def _create_enrollment_track_partition(course):
 
 class PartitionService(object):
     """
-    This is an XBlock service that assigns tracks which groups users are in for various
-    user partitions.  It uses the provided user_tags service object to
-    persist the assignments.
+    This is an XBlock service that returns information about the user partitions associated
+    with a given course.
     """
-    __metaclass__ = ABCMeta
+
+    def __init__(self, course_id, track_function=None, cache=None):
+        self._course_id = course_id
+        self._track_function = track_function
+        self._cache = cache
 
     def get_course(self):
+        """
+        Return the course instance associated with this PartitionService.
+        Returns:
+
+        """
         return modulestore().get_course(self._course_id)
 
     @property
@@ -73,11 +88,6 @@ class PartitionService(object):
         """
         return get_course_user_partitions(self.get_course())
 
-    def __init__(self, course_id, track_function=None, cache=None):
-        self._course_id = course_id
-        self._track_function = track_function
-        self._cache = cache
-
     def get_user_group_id_for_partition(self, user, user_partition_id):
         """
         If the user is already assigned to a group in user_partition_id, return the
@@ -85,9 +95,6 @@ class PartitionService(object):
 
         If not, assign them to one of the groups, persist that decision, and
         return the group_id.
-
-        If the group they are assigned to doesn't exist anymore, re-assign to one of
-        the existing groups and return its id.
 
         Args:
             user_partition_id -- an id of a partition that's hopefully in the
