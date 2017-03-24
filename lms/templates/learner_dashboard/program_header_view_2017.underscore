@@ -10,11 +10,21 @@
         margin: 0;
         width: 75%;
     }
-    .micromasters-program-details-icon {
+    .program-details-icon {
         margin-left: 3px;
         margin-top: 10px;
-        width: 150px;
+        width: 300px;
         height: auto;
+    }
+    .micromasters {
+        fill: #065784;
+        width: 250px;
+    }
+    .xseries {
+        fill: #065784;
+        width: 200px;
+    }
+    .professional.certificate {
         fill: #065784;
     }
     .authoring-organizations {
@@ -35,7 +45,7 @@
 </style>
 <div class="program-details-header">
     <div class="meta-info grid-container">
-        <span aria-label="<%- gettext(programData.type) %>" class="<%- programData.type.toLowerCase() %>-program-details-icon"><%= logo %></span>
+        <span aria-label="<%- gettext(programData.type) %>" class="<%- programData.type.toLowerCase() %> program-details-icon"><%= logo %></span>
         <h2 class="hd-1 row"><%- programData.title %></h2>
     </div>
     <div class='authoring-organizations'>

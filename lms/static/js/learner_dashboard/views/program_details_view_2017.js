@@ -69,33 +69,21 @@
                          el: '.js-course-list-in-progress',
                          childView: CourseCardView,
                          collection: this.inProgressCourseCollection,
-                         context: this.options,
-                         titleContext: {
-                             el: 'h2',
-                             title: 'In Progress Course List'
-                         }
+                         context: this.options
                      }).render();
 
                      new CollectionListView({
                          el: '.js-course-list-remaining',
                          childView: CourseCardView,
                          collection: this.remainingCourseCollection,
-                         context: this.options,
-                         titleContext: {
-                             el: 'h2',
-                             title: 'Remaining Course List'
-                         }
+                         context: this.options
                      }).render();
 
                      new CollectionListView({
                          el: '.js-course-list-completed',
                          childView: CourseCardView,
                          collection: this.completedCourseCollection,
-                         context: this.options,
-                         titleContext: {
-                             el: 'h2',
-                             title: 'Completed Course List'
-                         }
+                         context: this.options
                      }).render();
 
                      new SidebarView({

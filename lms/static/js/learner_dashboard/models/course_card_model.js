@@ -116,14 +116,19 @@
                 },
 
                 getCertificatePriceString(run){
-                    var verified_seat;
+                    var verified_seat, currency;
                     if ('seats' in run && run['seats'].length) {
                         verified_seat = _.filter(run['seats'], function(seat){
-                            if (seat['type'] === 'verified'){
+                            if (seat['type'] === 'verified' || seat['type'] === 'professional' || seat['type'] === 'credit'){
                                 return seat;
                             }
                         })[0]
-                        return verified_seat['price'] + " " + verified_seat['currency'];
+                        currency = verified_seat['currency'];
+                        if (currency === 'USD'){
+                            return '$' + verified_seat['price'];
+                        } else {
+                            return verified_seat['price'] + " " + currency;
+                        }
                     }
                     return null;
                 },
