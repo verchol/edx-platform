@@ -85,12 +85,6 @@ function() {
         state.videoProgressSlider.handle = state.videoProgressSlider.el
             .find('.ui-slider-handle');
 
-        state.videoProgressSlider.el.append(
-            '<div class="sr" id="slider-text-' + state.id + '">' +
-                gettext('Press space to toggle playback') +
-            '</div>'
-        );
-
         // ARIA
         // We just want the knob to be selectable with keyboard
         state.videoProgressSlider.el.attr({
@@ -121,8 +115,12 @@ function() {
     // ***************************************************************
 
     function buildSlider() {
-        this.videoProgressSlider.el
-            .append('<div class="ui-slider-handle progress-handle"></div>');
+        this.videoProgressSlider.el.append(
+            '<div class="sr" id="slider-text-' + state.id + '">' +
+                gettext('Press space to toggle playback') +
+            '</div>' +
+            '<div class="ui-slider-handle progress-handle"></div>'
+        );
 
         this.videoProgressSlider.slider = this.videoProgressSlider.el
             .slider({
