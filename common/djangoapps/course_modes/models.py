@@ -25,6 +25,7 @@ Mode = namedtuple('Mode',
                       'bulk_sku',
                   ])
 
+
 class CourseMode(models.Model):
     """
     We would like to offer a course in a variety of modes.

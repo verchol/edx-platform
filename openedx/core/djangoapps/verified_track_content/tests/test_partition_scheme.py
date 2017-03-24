@@ -13,7 +13,6 @@ from student.tests.factories import UserFactory
 from xmodule.modulestore.tests.django_utils import SharedModuleStoreTestCase
 from xmodule.modulestore.tests.factories import CourseFactory
 from xmodule.partitions.partitions import UserPartition
-from xmodule.partitions.partitions_service import get_course_user_partitions
 
 
 class EnrollmentTrackUserPartitionTest(SharedModuleStoreTestCase):
@@ -27,14 +26,14 @@ class EnrollmentTrackUserPartitionTest(SharedModuleStoreTestCase):
         cls.course = CourseFactory.create()
 
     def test_only_default_mode(self):
-        partition = get_enrollment_track_partition(self.course)
+        partition = create_enrollment_track_partition(self.course)
         groups = partition.groups
         self.assertEqual(1, len(groups))
         self.assertEqual("Audit", groups[0].name)
 
     def test_using_verified_track_cohort(self):
         VerifiedTrackCohortedCourse.objects.create(course_key=self.course.id, enabled=True).save()
-        partition = get_enrollment_track_partition(self.course)
+        partition = create_enrollment_track_partition(self.course)
         self.assertEqual(0, len(partition.groups))
 
     def test_multiple_groups(self):
@@ -47,22 +46,21 @@ class EnrollmentTrackUserPartitionTest(SharedModuleStoreTestCase):
         # Note that the credit mode is not selectable-- this is intentional.
         create_mode(self.course, CourseMode.CREDIT_MODE, "Credit Mode", min_price=2)
 
-        partition = get_enrollment_track_partition(self.course)
+        partition = create_enrollment_track_partition(self.course)
         groups = partition.groups
         self.assertEqual(3, len(groups))
-        self.assertIsNotNone(self.get_group_by_name("Audit Enrollment Track"))
-        self.assertIsNotNone(self.get_group_by_name("Verified Enrollment Track"))
-        self.assertIsNotNone(self.get_group_by_name("Credit Mode"))
+        self.assertIsNotNone(self.get_group_by_name(partition, "Audit Enrollment Track"))
+        self.assertIsNotNone(self.get_group_by_name(partition, "Verified Enrollment Track"))
+        self.assertIsNotNone(self.get_group_by_name(partition, "Credit Mode"))
 
-    def test_to_json(self):
-        create_mode(self.course, CourseMode.VERIFIED, "Verified Enrollment Track", min_price=1)
-        user_partition = get_enrollment_track_partition(self.course)
-        self.assertEqual(1, len(user_partition.groups))
-        self.assertIsNotNone(self.get_group_by_name("Verified Enrollment Track"))
+    def test_to_json_not_supported(self):
+        user_partition = create_enrollment_track_partition(self.course)
+        with self.assertRaises(TypeError):
+            user_partition.to_json()
 
-        json = user_partition.to_json()
-        self.assertEqual(json['groups'], [])
-        self.assertEqual(json['parameters'], {})
+    def test_from_json_not_supported(self):
+        with self.assertRaises(TypeError):
+            EnrollmentTrackUserPartition.from_json()
 
     def test_group_ids(self):
         """
@@ -72,12 +70,13 @@ class EnrollmentTrackUserPartitionTest(SharedModuleStoreTestCase):
         for mode in ENROLLMENT_GROUP_IDS:
             self.assertLess(ENROLLMENT_GROUP_IDS[mode], 100)
 
-    def get_group_by_name(self, name):
+    @staticmethod
+    def get_group_by_name(partition, name):
         """
         Return the group in the EnrollmentTrackUserPartition with the given name.
         If no such group exists, returns `None`.
         """
-        for group in get_enrollment_track_partition(self.course).groups:
+        for group in partition.groups:
             if group.name == name:
                 return group
         return None
@@ -127,6 +126,19 @@ class EnrollmentTrackPartitionSchemeTest(SharedModuleStoreTestCase):
         CourseEnrollment.enroll(self.student, self.course.id, mode=CourseMode.VERIFIED)
         self.assertEqual("Verified Enrollment Track", self._get_user_group().name)
 
+    def test_enrolled_in_expired(self):
+        create_mode(
+            self.course, CourseMode.VERIFIED, "Verified Enrollment Track",
+            min_price=1, expiration_datetime=datetime.now(pytz.UTC) + timedelta(days=-1)
+        )
+        CourseEnrollment.enroll(self.student, self.course.id, mode=CourseMode.VERIFIED)
+        self.assertEqual("Verified Enrollment Track", self._get_user_group().name)
+
+    def test_enrolled_in_non_selectable(self):
+        create_mode(self.course, CourseMode.CREDIT_MODE, "Credit Enrollment Track", min_price=1)
+        CourseEnrollment.enroll(self.student, self.course.id, mode=CourseMode.CREDIT_MODE)
+        self.assertEqual("Credit Enrollment Track", self._get_user_group().name)
+
     def test_using_verified_track_cohort(self):
         VerifiedTrackCohortedCourse.objects.create(course_key=self.course.id, enabled=True).save()
         CourseEnrollment.enroll(self.student, self.course.id)
@@ -136,19 +148,27 @@ class EnrollmentTrackPartitionSchemeTest(SharedModuleStoreTestCase):
         """
         Gets the group the user is assigned to.
         """
-        user_partition = get_enrollment_track_partition(self.course)
+        user_partition = create_enrollment_track_partition(self.course)
         return user_partition.scheme.get_group_for_user(self.course.id, self.student, user_partition)
 
 
-def get_enrollment_track_partition(course):
-    for partition in get_course_user_partitions(course):
-        if partition.scheme.name == 'enrollment_track':
-            return partition
-    return None
+def create_enrollment_track_partition(course):
+    """
+    Create an EnrollmentTrackUserPartition instance for the given course.
+    """
+    enrollment_track_scheme = UserPartition.get_scheme("enrollment_track")
+    partition = enrollment_track_scheme.create_user_partition(
+        id=1,
+        name="TestEnrollment Track Partition",
+        description="Test partition for segmenting users by enrollment track",
+        parameters={"course_id": unicode(course.id)}
+    )
+    return partition
+
 
 def create_mode(course, mode_slug, mode_name, min_price=0, expiration_datetime=None):
     """
-    Create a new course mode
+    Create a new course mode for the given course.
     """
     return CourseMode.objects.get_or_create(
         course_id=course.id,

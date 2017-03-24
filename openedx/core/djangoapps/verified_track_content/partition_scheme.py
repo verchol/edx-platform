@@ -46,26 +46,19 @@ class EnrollmentTrackUserPartition(UserPartition):
 
     def to_json(self):
         """
-        'Serialize' to a json-serializable representation.
+        Because this partition is dynamic, to_json and from_json are not supported.
 
-        Returns:
-            A dictionary with keys for the properties of the partition, with an empty array for
-            `groups` because it is dynamic based on the current course modes.
+        Calling this method will raise a TypeError.
         """
-        # Do not persist the course_id. In practice, this UserPartition is always dynamically
-        # added so this is not an issue, but to be clear about the intent, we will remove the
-        # course_id.
-        del self.parameters["course_id"]
-        return {
-            "id": self.id,
-            "name": self.name,
-            "scheme": self.scheme.name,
-            "description": self.description,
-            "parameters": self.parameters,
-            "groups": [],  # Do not persist groups because they are dynamic.
-            "active": bool(self.active),
-            "version": UserPartition.VERSION
-        }
+        raise TypeError("Because EnrollmentTrackUserPartition is a dynamic partition, 'to_json' is not supported.")
+
+    def from_json(self):
+        """
+        Because this partition is dynamic, to_json and from_json are not supported.
+
+        Calling this method will raise a TypeError.
+        """
+        raise TypeError("Because EnrollmentTrackUserPartition is a dynamic partition, 'from_json' is not supported.")
 
 
 class EnrollmentTrackPartitionScheme(object):
