@@ -116,7 +116,7 @@ function() {
 
     function buildSlider() {
         this.videoProgressSlider.el.append(
-            '<div class="sr" id="slider-text-' + state.id + '">' +
+            '<div class="sr" id="slider-text-' + this.id + '">' +
                 gettext('Press space to toggle playback') +
             '</div>' +
             '<div class="ui-slider-handle progress-handle"></div>'
