@@ -246,6 +246,7 @@ def check_arguments_for_rescoring(usage_key):
     corresponding module doesn't support rescoring calls.
     """
     descriptor = modulestore().get_item(usage_key)
+    # TODO: Clean this up as part of TNL-6594 when CAPA uses the ScorableXBlockMixin
     if (
             not hasattr(descriptor, 'module_class') or not hasattr(descriptor.module_class, 'rescore_problem')
     ) and not hasattr(descriptor, 'rescore'):
