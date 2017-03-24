@@ -35,7 +35,8 @@ function() {
     //
     //     Functions which will be accessible via 'state' object. When called,
     //     these functions will get the 'state' object as a context.
-    /*eslint-disable no-use-before-define*/
+
+    /* eslint-disable no-use-before-define */
     function _makeFunctionsPublic(state) {
         var methodsDict = {
             destroy: destroy,
@@ -52,7 +53,6 @@ function() {
 
         state.bindTo(methodsDict, state.videoProgressSlider, state);
     }
-    /*eslint-enable no-use-before-define*/
 
     function destroy() {
         this.videoProgressSlider.el.removeAttr('tabindex').slider('destroy');
@@ -64,6 +64,7 @@ function() {
         state.videoProgressSlider.el.on('keypress', sliderToggle.bind(state));
         state.el.on('destroy', state.videoProgressSlider.destroy);
     }
+    /* eslint-enable no-use-before-define */
 
     // function _renderElements(state)
     //
