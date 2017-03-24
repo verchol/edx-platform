@@ -25,8 +25,6 @@ class CourseHomePage(CoursePage):
         super(CourseHomePage, self).__init__(browser, course_id)
         self.course_id = course_id
         self.outline = CourseOutlinePage(browser, self)
-        # TODO: TNL-6546: Remove the following
-        self.unified_course_view = False
 
     def click_bookmarks_button(self):
         """ Click on Bookmarks button """
@@ -157,10 +155,6 @@ class CourseOutlinePage(PageObject):
         """
         courseware_page = CoursewarePage(self.browser, self.parent_page.course_id)
         courseware_page.wait_for_page()
-
-        # TODO: TNL-6546: Remove this if/visit_unified_course_view
-        if self.parent_page.unified_course_view:
-            courseware_page.nav.visit_unified_course_view()
 
         self.wait_for(
             promise_check_func=lambda: courseware_page.nav.is_on_section(section_title, subsection_title),

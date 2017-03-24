@@ -768,43 +768,6 @@ class HighLevelTabTest(UniqueCourseTest):
         )
         self.assertEqual(expected_article_name, course_wiki.article_name)
 
-    # TODO: TNL-6546: This whole function will be able to go away, replaced by test_course_home below.
-    @attr(shard=1)
-    def test_courseware_nav(self):
-        """
-        Navigate to a particular unit in the course.
-        """
-        # Navigate to the course page from the info page
-        self.course_info_page.visit()
-        self.tab_nav.go_to_tab('Course')
-
-        # Check that the course navigation appears correctly
-        EXPECTED_SECTIONS = {
-            'Test Section': ['Test Subsection'],
-            'Test Section 2': ['Test Subsection 2', 'Test Subsection 3']
-        }
-
-        actual_sections = self.courseware_page.nav.sections
-
-        for section, subsections in EXPECTED_SECTIONS.iteritems():
-            self.assertIn(section, actual_sections)
-            self.assertEqual(actual_sections[section], EXPECTED_SECTIONS[section])
-
-        # Navigate to a particular section
-        self.courseware_page.nav.go_to_section('Test Section', 'Test Subsection')
-
-        # Check the sequence items
-        EXPECTED_ITEMS = ['Test Problem 1', 'Test Problem 2', 'Test HTML']
-
-        actual_items = self.courseware_page.nav.sequence_items
-        self.assertEqual(len(actual_items), len(EXPECTED_ITEMS))
-        for expected in EXPECTED_ITEMS:
-            self.assertIn(expected, actual_items)
-
-        # Navigate to a particular section other than the default landing section.
-        self.courseware_page.nav.go_to_section('Test Section 2', 'Test Subsection 3')
-        self.assertTrue(self.courseware_page.nav.is_on_section('Test Section 2', 'Test Subsection 3'))
-
     @attr(shard=1)
     def test_course_home(self):
         """
