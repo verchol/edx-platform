@@ -70,7 +70,7 @@ function() {
         state.el.find('.video-controls').prepend(state.videoProgressSlider.el);
         state.videoProgressSlider.buildSlider();
         _buildHandle(state);
-        _bindHandlers(state);
+        bindHandlers(state);
     }
 
     function _buildHandle(state) {
@@ -86,7 +86,7 @@ function() {
         // ARIA
         // We just want the knob to be selectable with keyboard
         state.videoProgressSlider.el.attr({
-            'tabindex': -1,
+            tabindex: -1,
             'aria-describedby': 'slider-text-' + state.id
         });
 
@@ -105,7 +105,7 @@ function() {
         });
     }
 
-    function _bindHandlers(state) {
+    function bindHandlers(state) {
         state.videoProgressSlider.el.on('keypress', sliderToggle.bind(state));
         state.el.on('destroy', state.videoProgressSlider.destroy);
     }
@@ -344,7 +344,7 @@ function() {
         return i18n(seconds, 'second');
     }
 
-    function focusSlider(params) {
+    function focusSlider() {
         this.videoProgressSlider.handle.attr(
             'aria-valuetext', getTimeDescription(this.videoPlayer.currentTime)
         );
