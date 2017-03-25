@@ -101,10 +101,18 @@ class ChooseModeView(View):
                     redirect_url = ecommerce_service.checkout_page_url(professional_mode.bulk_sku)
             return redirect(redirect_url)
 
+        # If the learner has arrived at this screen via the traditional enrollment workflow, then they should
+        # already be enrolled in an audit mode for the course, assuming one has been configured.  However,
+        # alternative enrollment workflows have been introduced into the system, such as third-party discovery.
+        # These workflows result in learners arriving directly at this screen, and they will not necessarily
+        # be pre-enrolled in the audit mode.  In that case we'll need to enroll them here before going further
+        # and then reload the state of the "enrollment_mode" and "is_active" parameters.
+        if not is_active and (not enrollment_mode or enrollment_mode == CourseMode.AUDIT):
+            CourseEnrollment.enroll(request.user, course_key, CourseMode.AUDIT)
+            enrollment_mode, is_active = CourseEnrollment.enrollment_mode_for_user(request.user, course_key)
+
         # If there isn't a verified mode available, then there's nothing
-        # to do on this page.  The user has almost certainly been auto-registered
-        # in the "honor" track by this point, so we send the user
-        # to the dashboard.
+        # to do on this page.  Send the user to the dashboard.
         if not CourseMode.has_verified_mode(modes):
             return redirect(reverse('dashboard'))
 

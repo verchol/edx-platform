@@ -81,11 +81,26 @@ class CourseModeViewTest(UrlResetMixin, ModuleStoreTestCase, EnterpriseServiceMo
             password="edx",
         )
 
+        # Keep track of the original enrollment state
+        original_is_active = is_active
+        original_enrollment_mode = enrollment_mode
+
         # Configure whether we're upgrading or not
         url = reverse('course_modes_choose', args=[unicode(self.course.id)])
         response = self.client.get(url)
 
-        # Check whether we were correctly redirected
+        # In cases where the learner's enrollment record was non-existent, or not active, and the
+        # course mode is of the "audit" variety, a visit to the track selection page should result
+        # in an "audit" enrollment for this user+course combination.
+        if not original_is_active and (not original_enrollment_mode or original_enrollment_mode == CourseMode.AUDIT):
+
+            # Confirm the learner is pre-enrolled in the audit track of the course
+            enrollment_mode, is_active = CourseEnrollment.enrollment_mode_for_user(self.user, self.course.id)
+            self.assertTrue(is_active)
+            self.assertEqual(enrollment_mode, CourseMode.AUDIT)
+
+        # Finally, check whether we were correctly sent to the dashboard for cases where
+        # the system is required to redirect the learner.
         if redirect:
             self.assertRedirects(response, reverse('dashboard'))
         else:
