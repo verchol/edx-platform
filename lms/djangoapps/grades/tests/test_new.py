@@ -118,9 +118,9 @@ class TestCourseGradeFactory(GradeTestBase):
             course_id=self.course.id,
             enabled_for_course=course_setting
         ):
-            with patch('lms.djangoapps.grades.new.course_grade.CourseGrade.load_persisted_grade') as mock_save_grades:
+            with patch('lms.djangoapps.grades.models.PersistentCourseGrade.read_course_grade') as mock_read_grade:
                 grade_factory.create(self.request.user, self.course)
-        self.assertEqual(mock_save_grades.called, feature_flag and course_setting)
+        self.assertEqual(mock_read_grade.called, feature_flag and course_setting)
 
     def test_course_grade_creation(self):
         grade_factory = CourseGradeFactory()
@@ -140,11 +140,11 @@ class TestCourseGradeFactory(GradeTestBase):
         grade_factory = CourseGradeFactory()
         # first, create a grade in the database
         with mock_get_score(1, 2):
-            grade_factory.create(self.request.user, self.course, read_only=False)
+            grade_factory.update(self.request.user, self.course)
 
         # retrieve the grade, ensuring it is as expected and take just one query
         with self.assertNumQueries(1):
-            course_grade = grade_factory.get_persisted(self.request.user, self.course)
+            course_grade = grade_factory.get_even_if_outdated(self.request.user, self.course)
         self.assertEqual(course_grade.letter_grade, u'Pass')
         self.assertEqual(course_grade.percent, 0.5)
 
@@ -165,10 +165,10 @@ class TestCourseGradeFactory(GradeTestBase):
         }
         self.course.set_grading_policy(new_grading_policy)
 
-        # ensure the grade can still be retrieved via get_persisted
+        # ensure the grade can still be retrieved via get_even_if_outdated
         # despite its outdated grading policy
         with self.assertNumQueries(1):
-            course_grade = grade_factory.get_persisted(self.request.user, self.course)
+            course_grade = grade_factory.get_even_if_outdated(self.request.user, self.course)
         self.assertEqual(course_grade.letter_grade, u'Pass')
         self.assertEqual(course_grade.percent, 0.5)
 
@@ -579,7 +579,7 @@ class TestCourseGradeLogging(ProblemSubmissionTestMixin, SharedModuleStoreTestCa
 
     def _create_course_grade_and_check_logging(
             self,
-            factory,
+            factory_method,
             log_mock,
             log_statement
     ):
@@ -587,7 +587,7 @@ class TestCourseGradeLogging(ProblemSubmissionTestMixin, SharedModuleStoreTestCa
         Creates a course grade and asserts that the associated logging
         matches the expected totals passed in to the function.
         """
-        factory.create(self.request.user, self.course, read_only=False)
+        factory_method(self.request.user, self.course)
         log_mock.assert_called_with(
             u"Persistent Grades: CourseGrade.{0}, course: {1}, user: {2}".format(
                 log_statement,
@@ -605,36 +605,39 @@ class TestCourseGradeLogging(ProblemSubmissionTestMixin, SharedModuleStoreTestCa
             enabled_for_course=True
         ):
             with patch('lms.djangoapps.grades.new.course_grade.log') as log_mock:
-                # the course grade has not been created, so we expect each grade to be created
-                log_statement = u''.join((
-                    u"compute_and_update, read_only: {0}, subsections read/created: {1}/{2}, blocks ",
-                    u"accessed: {3}, total graded subsections: {4}"
-                )).format(False, 0, 3, 3, 2)
+                log_statement = u'create'
                 self._create_course_grade_and_check_logging(
-                    grade_factory,
-                    log_mock.warning,
-                    log_statement
-                )
-                log_mock.reset_mock()
-
-                # the course grade has been created, so we expect to read it from the db
-                log_statement = u"load_persisted_grade"
-                self._create_course_grade_and_check_logging(
-                    grade_factory,
+                    grade_factory.create,
                     log_mock.info,
                     log_statement
                 )
                 log_mock.reset_mock()
 
-                # only problem submission, a subsection grade update triggers
-                # a course grade update
-                self.submit_question_answer(u'test_problem_1', {u'2_1': u'choice_choice_2'})
-                log_statement = u''.join((
-                    u"compute_and_update, read_only: {0}, subsections read/created: {1}/{2}, blocks ",
-                    u"accessed: {3}, total graded subsections: {4}"
-                )).format(False, 3, 0, 3, 2)
+                # updating the grade writes all new to the db
+                log_statement = u'update, subsections read/created/total: {}/{}/{}, total blocks: {}'.format(
+                    0, 3, 3, 3,
+                )
                 self._create_course_grade_and_check_logging(
-                    grade_factory,
+                    grade_factory.update,
+                    log_mock.warning,
+                    log_statement
+                )
+
+                # the course grade has been created, so we expect to read it from the db
+                log_statement = u"read"
+                self._create_course_grade_and_check_logging(
+                    grade_factory.create,
+                    log_mock.info,
+                    log_statement
+                )
+                log_mock.reset_mock()
+
+                # updating the grade again doesn't write to the db
+                log_statement = u'update, subsections read/created/total: {}/{}/{}, total blocks: {}'.format(
+                    3, 0, 3, 3,
+                )
+                self._create_course_grade_and_check_logging(
+                    grade_factory.update,
                     log_mock.warning,
                     log_statement
                 )

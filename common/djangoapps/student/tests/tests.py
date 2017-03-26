@@ -115,7 +115,9 @@ class CourseEndingTest(TestCase):
         )
 
         cert_status = {'status': 'generating', 'grade': '67', 'mode': 'honor'}
-        with patch('lms.djangoapps.grades.new.course_grade.CourseGradeFactory.get_persisted') as patch_persisted_grade:
+        with patch(
+                'lms.djangoapps.grades.new.course_grade.CourseGradeFactory.get_even_if_outdated'
+        ) as patch_persisted_grade:
             patch_persisted_grade.return_value = Mock(percent=100)
             self.assertEqual(
                 _cert_info(user, course, cert_status, course_mode),
