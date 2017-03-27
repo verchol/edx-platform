@@ -9,8 +9,9 @@ from submissions import api as submissions_api
 from lms.djangoapps.grades.config.models import PersistentGradesEnabledFlag
 from lms.djangoapps.grades.models import PersistentSubsectionGrade
 from lms.djangoapps.grades.scores import possibly_scored
+from ..config.waffle import waffle, ASSUME_ZERO_GRADE_IF_ABSENT
 from .course_data import CourseData
-from .subsection_grade import SubsectionGrade
+from .subsection_grade import SubsectionGrade, ZeroSubsectionGrade
 
 
 log = getLogger(__name__)
@@ -39,15 +40,18 @@ class SubsectionGradeFactory(object):
 
         subsection_grade = self._get_bulk_cached_grade(subsection)
         if not subsection_grade:
-            subsection_grade = SubsectionGrade(subsection).init_from_structure(
-                self.student, self.course_data.structure, self._submissions_scores, self._csm_scores,
-            )
-            if PersistentGradesEnabledFlag.feature_enabled(self.course_data.course_key):
-                if read_only:
-                    self._unsaved_subsection_grades.append(subsection_grade)
-                else:
-                    grade_model = subsection_grade.create_model(self.student)
-                    self._update_saved_subsection_grade(subsection.location, grade_model)
+            if waffle().is_enabled(ASSUME_ZERO_GRADE_IF_ABSENT):
+                subsection_grade = ZeroSubsectionGrade(subsection, self.course_data)
+            else:
+                subsection_grade = SubsectionGrade(subsection).init_from_structure(
+                    self.student, self.course_data.structure, self._submissions_scores, self._csm_scores,
+                )
+                if PersistentGradesEnabledFlag.feature_enabled(self.course_data.course_key):
+                    if read_only:
+                        self._unsaved_subsection_grades.append(subsection_grade)
+                    else:
+                        grade_model = subsection_grade.create_model(self.student)
+                        self._update_saved_subsection_grade(subsection.location, grade_model)
         return subsection_grade
 
     def bulk_create_unsaved(self):

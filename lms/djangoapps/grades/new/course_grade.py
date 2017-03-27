@@ -140,7 +140,7 @@ class ZeroCourseGrade(CourseGradeBase):
 
 class CourseGrade(CourseGradeBase):
     """
-    Course Grade class when grades are read from storage or updated.
+    Course Grade class when grades are updated or read from storage.
     """
     def __init__(self, user, course_data, *args, **kwargs):
         super(CourseGrade, self).__init__(user, course_data, *args, **kwargs)

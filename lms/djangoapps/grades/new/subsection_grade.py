@@ -9,6 +9,8 @@ from lms.djangoapps.grades.models import BlockRecord, PersistentSubsectionGrade
 from xmodule import block_metadata_utils, graders
 from xmodule.graders import AggregatedScore
 
+from ..config.waffle import waffle, WRITE_ONLY_IF_ENGAGED
+
 
 log = getLogger(__name__)
 
@@ -65,6 +67,11 @@ class ZeroSubsectionGrade(SubsectionGradeBase):
 
     @lazy
     def locations_to_scores(self):
+        """
+        Overrides the locations_to_scores member variable in order
+        to return empty scores for all scorable problems in the
+        course.
+        """
         locations = OrderedDict()  # dict of problem locations to ProblemScore
         for block_key in self.course_data.structure.post_order_traversal(
                 filter_func=possibly_scored,
@@ -127,6 +134,7 @@ class SubsectionGrade(SubsectionGradeBase):
         """
         Saves the subsection grade in a persisted model.
         """
+        subsection_grades = filter(lambda subs_grade: subs_grade._should_persist_per_attempted, subsection_grades)
         return PersistentSubsectionGrade.bulk_create_grades(
             [subsection_grade._persisted_model_params(student) for subsection_grade in subsection_grades],  # pylint: disable=protected-access
             course_key,
@@ -136,15 +144,25 @@ class SubsectionGrade(SubsectionGradeBase):
         """
         Saves the subsection grade in a persisted model.
         """
-        self._log_event(log.debug, u"create_model", student)
-        return PersistentSubsectionGrade.create_grade(**self._persisted_model_params(student))
+        if self._should_persist_per_attempted:
+            self._log_event(log.debug, u"create_model", student)
+            return PersistentSubsectionGrade.create_grade(**self._persisted_model_params(student))
 
     def update_or_create_model(self, student):
         """
         Saves or updates the subsection grade in a persisted model.
         """
-        self._log_event(log.debug, u"update_or_create_model", student)
-        return PersistentSubsectionGrade.update_or_create_grade(**self._persisted_model_params(student))
+        if self._should_persist_per_attempted:
+            self._log_event(log.debug, u"update_or_create_model", student)
+            return PersistentSubsectionGrade.update_or_create_grade(**self._persisted_model_params(student))
+
+    @property
+    def _should_persist_per_attempted(self):
+        """
+        Returns whether the SubsectionGrade's model should be
+        persisted based on settings and attempted status.
+        """
+        return not waffle().is_enabled(WRITE_ONLY_IF_ENGAGED) or self.attempted
 
     def _compute_block_score(
             self,

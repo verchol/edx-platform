@@ -63,6 +63,13 @@ class CourseGradeFactory(object):
                 return None
 
     def update(self, user, course=None, collected_block_structure=None, course_structure=None, course_key=None):
+        """
+        Computes, updates, and returns the CourseGrade for the given
+        user in the course.
+
+        At least one of course, collected_block_structure, course_structure,
+        or course_key should be provided.
+        """
         course_data = CourseData(user, course, collected_block_structure, course_structure, course_key)
         return self._update(user, course_data)
 
@@ -105,10 +112,17 @@ class CourseGradeFactory(object):
 
     @staticmethod
     def _create_zero(user, course_data):
+        """
+        Returns a ZeroCourseGrade object for the given user and course.
+        """
         return ZeroCourseGrade(user, course_data.course_key)
 
     @staticmethod
     def _read(user, course_data):
+        """
+        Returns a CourseGrade object based on stored grade information
+        for the given user and course.
+        """
         if not PersistentGradesEnabledFlag.feature_enabled(course_data.course_key):
             raise PersistentCourseGrade.DoesNotExist
 
@@ -124,6 +138,11 @@ class CourseGradeFactory(object):
 
     @staticmethod
     def _update(user, course_data):
+        """
+        Computes, saves, and returns a CourseGrade object for the
+        given user and course.
+        Sends a COURSE_GRADE_CHANGED signal to listeners.
+        """
         course_grade = CourseGrade(user, course_data)
         course_grade.update()
 
@@ -149,3 +168,4 @@ class CourseGradeFactory(object):
             course_key=course_data.course_key,
             deadline=course_data.course.end,
         )
+        return course_grade
