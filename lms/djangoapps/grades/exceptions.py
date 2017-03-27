@@ -2,7 +2,6 @@
 Application-specific exceptions raised by the grades framework.
 """
 
-
 class GradesException(Exception):
     """
     Base class for all Grade framework exceptions.
