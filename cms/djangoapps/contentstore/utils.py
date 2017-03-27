@@ -297,7 +297,7 @@ def get_group_display_name(user_partitions, xblock_display_name):
     """
     for user_partition in get_split_user_partitions(user_partitions):
         for group in user_partition['groups']:
-            if str(group['id']) in xblock_display_name:
+            if _(u'Group ID {group_id}').format(group_id=group['id']) == xblock_display_name:
                 return group['name']
 
 
